@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Skat3health</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F0EBE1;
+  --bg2: #E8E1D5;
+  --bg3: #DDD5C7;
+  --card-yellow: #E8F000;
+  --card-orange: #F07840;
+  --card-green: #78C878;
+  --card-blue: #78B4F0;
+  --card-purple: #C8A0F0;
+  --ink: #1A1814;
+  --ink2: #4A4640;
+  --ink3: #8A8480;
+  --white: #FDFCFA;
+  --radius: 28px;
+  --radius-sm: 18px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Full-screen web app — no fake phone shell */
+.phone {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+
+/* SCROLL AREA */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* Tab icons (~40px) + tab labels (~14px) + top padding (10px) + safe area bottom */
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 8px) + 20px);
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* TOPBAR — respects real notch/Dynamic Island via safe-area-inset-top */
+.topbar {
+  padding-top: env(safe-area-inset-top, 16px);
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  min-height: calc(env(safe-area-inset-top, 16px) + 56px);
+  align-items: flex-end;
+  padding-bottom: 8px;
+}
+.top-left { display: flex; gap: 10px; }
+.top-icon {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+}
+.avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--bg3);
+}
+
+/* PAGE TITLE */
+.page-title-wrap {
+  padding: 16px 24px 8px;
+  flex-shrink: 0;
+}
+.page-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.page-subtitle {
+  font-size: 14px;
+  color: var(--ink3);
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+/* FILTER PILLS */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  padding: 8px 24px 16px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.pill-btn {
+  background: var(--bg2);
+  border: none;
+  border-radius: 50px;
+  padding: 10px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink2);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.pill-btn.active {
+  background: var(--ink);
+  color: var(--bg);
+}
+.pill-btn svg { width: 14px; height: 14px; }
+
+/* BIG CARDS */
+.big-card {
+  margin: 0 16px 16px;
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  cursor: pointer;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.big-card:active { transform: scale(0.98); }
+
+.card-yellow { background: var(--card-yellow); }
+.card-orange { background: var(--card-orange); }
+.card-green  { background: var(--card-green); }
+.card-blue   { background: var(--card-blue); }
+.card-purple { background: var(--card-purple); }
+.card-cream  { background: var(--white); }
+
+.card-label {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 2;
+}
+.card-orange .card-label { color: var(--white); }
+
+.card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  z-index: 2;
+}
+.stat-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.stat-big {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+}
+.card-orange .stat-big { color: var(--white); }
+.stat-small {
+  font-size: 13px;
+  color: var(--ink2);
+  font-weight: 400;
+}
+.card-orange .stat-small { color: rgba(255,255,255,0.75); }
+
+/* DECO SHAPES inside cards */
+.deco {
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 140px; height: 140px;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 1;
+}
+.deco-dots {
+  background-image: radial-gradient(circle, var(--ink) 2px, transparent 2px);
+  background-size: 14px 14px;
+  border-radius: var(--radius) 0 var(--radius) 0;
+}
+.deco-stripes {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--ink) 0px,
+    var(--ink) 2px,
+    transparent 2px,
+    transparent 12px
+  );
+  border-radius: var(--radius) 0 var(--radius) 0;
+}
+.deco-blob {
+  width: 160px; height: 160px;
+  background: var(--ink);
+  border-radius: 60% 40% 55% 45%;
+  right: -20px; bottom: -20px;
+  opacity: 0.12;
+}
+
+/* CARD CHIP (top right) */
+.card-chip {
+  position: absolute;
+  top: 20px; right: 20px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 3;
+}
+.card-chip svg { width: 16px; height: 16px; color: var(--ink); }
+.card-orange .card-chip { background: rgba(255,255,255,0.2); }
+.card-orange .card-chip svg { color: white; }
+
+/* ROUND BADGE */
+.round-badge {
+  position: absolute;
+  right: 28px; bottom: 24px;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--card-yellow);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+  z-index: 3;
+}
+
+/* SMALL CARDS ROW */
+.small-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 16px 16px;
+}
+.small-card {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  cursor: pointer;
+  transition: transform 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.small-card:active { transform: scale(0.97); }
+.small-card-label {
+  font-size: 12px;
+  color: var(--ink3);
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.small-card-val {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+}
+.small-card-unit {
+  font-size: 13px;
+  color: var(--ink3);
+  margin-top: 2px;
+}
+.small-card-bar {
+  height: 4px;
+  background: var(--bg2);
+  border-radius: 4px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.small-card-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--ink);
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* MEAL ITEMS */
+.meal-list { margin: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.meal-item {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.meal-item:active { transform: scale(0.98); }
+.meal-dot {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.meal-info { flex: 1; min-width: 0; }
+.meal-name-text {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meal-meta { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+.meal-cal-badge {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.meal-log-btn {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  background: var(--bg2);
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  font-size: 16px;
+}
+.meal-log-btn.done { background: var(--card-yellow); }
+
+/* SECTION HEADER */
+.section-header {
+  padding: 8px 24px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.section-link {
+  font-size: 13px;
+  color: var(--ink3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* MOOD ROW */
+.mood-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 16px;
+  overflow-x: auto;
+}
+.mood-row::-webkit-scrollbar { display: none; }
+.mood-chip {
+  background: var(--white);
+  border: 2px solid transparent;
+  border-radius: 50px;
+  padding: 10px 16px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.mood-chip span { font-size: 12px; color: var(--ink2); font-weight: 500; }
+.mood-chip.selected { border-color: var(--ink); background: var(--ink); }
+.mood-chip.selected span { color: var(--bg); }
+
+/* CHAT */
+.chat-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.chat-msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chat-msgs::-webkit-scrollbar { display: none; }
+.chat-msg {
+  display: flex;
+  gap: 10px;
+  max-width: 85%;
+}
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-av {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+.chat-av.user { background: var(--card-yellow); color: var(--ink); }
+.chat-bubble {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.chat-msg.user .chat-bubble {
+  background: var(--ink);
+  color: var(--bg);
+}
+.chat-time { font-size: 10px; color: var(--ink3); margin-top: 4px; padding: 0 4px; }
+.quick-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+}
+.q-chip {
+  background: var(--bg2);
+  border: none;
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--ink2);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.q-chip:hover { background: var(--ink); color: var(--bg); }
+.chat-input-wrap {
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 8px));
+  display: flex;
+  gap: 10px;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1;
+  background: var(--white);
+  border: none;
+  border-radius: 24px;
+  padding: 13px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  resize: none;
+  line-height: 1.4;
+  max-height: 100px;
+}
+.chat-input::placeholder { color: var(--ink3); }
+.chat-send {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: flex-end;
+  transition: transform 0.15s;
+}
+.chat-send:active { transform: scale(0.92); }
+.chat-send svg { width: 18px; height: 18px; color: white; }
+.typing-dots { display: flex; gap: 4px; padding: 4px 0; }
+.typing-dots span {
+  width: 6px; height: 6px;
+  background: var(--ink3);
+  border-radius: 50%;
+  animation: tdot 1.2s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,100%{opacity:0.3;transform:translateY(0)} 50%{opacity:1;transform:translateY(-3px)} }
+
+/* SLEEP / FORMS */
+.form-section { margin: 0 16px 16px; }
+.form-card {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.form-card-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 11px; color: var(--ink3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+.form-input {
+  background: var(--bg);
+  border: none;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  width: 100%;
+  -webkit-appearance: none;
+}
+.form-input:focus { background: var(--bg2); }
+select.form-input { cursor: pointer; }
+.btn-main {
+  width: 100%;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 16px;
+  padding: 15px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+.btn-main:active { transform: scale(0.98); }
+.btn-yellow {
+  background: var(--card-yellow);
+  color: var(--ink);
+}
+
+/* INGREDIENT CHIPS */
+.ing-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.ing-chip {
+  background: var(--bg);
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--ink2);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.ing-chip.on { background: var(--ink); color: var(--bg); }
+
+/* SLEEP HISTORY */
+.sleep-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bg2);
+}
+.sleep-row:last-child { border-bottom: none; }
+.sleep-hours {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+/* SETTINGS */
+.settings-list { margin: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.settings-card {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--bg);
+  cursor: pointer;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label { font-size: 14px; color: var(--ink); font-weight: 500; }
+.settings-row-val { font-size: 13px; color: var(--ink3); }
+.api-card {
+  background: #E8F000;
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.api-card-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.api-card-sub { font-size: 12px; color: var(--ink2); margin-bottom: 12px; }
+
+/* RANGE SLIDER */
+input[type=range] {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--bg2);
+  outline: none;
+  margin: 8px 0;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--ink);
+  cursor: pointer;
+}
+
+/* BOTTOM TAB BAR — real safe area for home indicator */
+.tab-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: flex-start;
+  padding: 10px 8px 0;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+  gap: 0;
+  z-index: 100;
+  border-top: 1px solid var(--bg2);
+  /* Height adapts to safe area — no fixed height */
+}
+.tab-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  position: relative;
+}
+.tab-icon-wrap {
+  width: 48px; height: 40px;
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.tab-btn.active .tab-icon-wrap {
+  background: var(--card-yellow);
+}
+.tab-btn svg { width: 22px; height: 22px; stroke: var(--ink3); stroke-width: 1.8; fill: none; transition: all 0.2s; }
+.tab-btn.active svg { stroke: var(--ink); }
+.tab-label { font-size: 10px; color: var(--ink3); font-weight: 500; }
+.tab-btn.active .tab-label { color: var(--ink); font-weight: 700; }
+
+/* PAGE SYSTEM */
+.pages { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.page { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.page.active { display: flex; }
+
+/* TOAST */
+.toast {
+  position: absolute;
+  bottom: calc(80px + env(safe-area-inset-bottom, 8px));
+  left: 50%; transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 999;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* PAGE ENTRY ANIMATION */
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.page.active .scroll-area,
+.page.active .chat-wrap {
+  animation: slideUp 0.3s ease;
+}
+
+/* FEEDBACK BOTTOM SHEET */
+.sheet-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26,24,20,0.5);
+  z-index: 150;
+  display: none;
+  align-items: flex-end;
+}
+.sheet-overlay.open { display: flex; }
+.sheet {
+  background: var(--bg);
+  border-radius: 28px 28px 0 0;
+  padding: 16px 24px 0;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 16px));
+  width: 100%;
+  animation: sheetUp 0.3s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--bg3);
+  border-radius: 4px;
+  margin: 0 auto 20px;
+}
+.sheet-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.sheet-sub { font-size: 13px; color: var(--ink3); margin-bottom: 18px; }
+.fullness-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink3);
+  margin-bottom: 14px;
+}
+.sheet-mood-row { display: flex; justify-content: space-between; margin-bottom: 18px; }
+.sheet-mood-btn {
+  flex: 1;
+  text-align: center;
+  padding: 10px 4px;
+  border: none;
+  background: var(--bg2);
+  border-radius: 14px;
+  margin: 0 3px;
+  cursor: pointer;
+  font-size: 20px;
+  transition: all 0.15s;
+}
+.sheet-mood-btn.selected { background: var(--ink); }
+.sheet-btns { display: flex; gap: 10px; }
+.btn-sec {
+  flex: 1;
+  background: var(--bg2);
+  color: var(--ink);
+  border: none;
+  border-radius: 16px;
+  padding: 14px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-pri {
+  flex: 2;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 16px;
+  padding: 14px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* SETTINGS INPUT INLINE */
+.settings-input {
+  background: var(--bg);
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--ink);
+  width: 150px;
+  text-align: right;
+  outline: none;
+}
+</style>
+</head>
+<body>
+<div class="phone" id="app">
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- ═══ PAGE: TODAY ═══ -->
+    <div class="page active" id="page-home">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="top-icon" onclick="showPage('settings')">⚙️</button>
+        </div>
+        <div class="avatar" id="user-avatar">You</div>
+      </div>
+      <div class="page-title-wrap">
+        <div class="page-title" id="home-title">Today</div>
+        <div class="page-subtitle" id="home-sub">Let's fuel your body right</div>
+      </div>
+      <div class="filter-row">
+        <button class="pill-btn active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Today
+        </button>
+        <button class="pill-btn" onclick="showPage('meals')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          Meals
+        </button>
+        <button class="pill-btn" onclick="showPage('sleep')">😴 Sleep</button>
+        <button class="pill-btn" onclick="showPage('mind')">🧠 Mind</button>
+      </div>
+      <div class="scroll-area">
+
+        <!-- Calorie card (yellow) -->
+        <div class="big-card card-yellow" onclick="showPage('meals')">
+          <div class="card-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          </div>
+          <div class="card-label">Calories</div>
+          <div class="card-stats">
+            <div class="stat-line">
+              <div class="stat-big" id="cal-big">0</div>
+              <div class="stat-small">/ 2800 kcal consumed</div>
+            </div>
+            <div class="stat-line">
+              <div class="stat-big" style="font-size:22px" id="prot-big">0g</div>
+              <div class="stat-small">protein</div>
+            </div>
+            <div class="stat-line">
+              <div class="stat-big" style="font-size:22px" id="meals-big">0</div>
+              <div class="stat-small">of 5 meals logged</div>
+            </div>
+          </div>
+          <div class="deco deco-dots"></div>
+        </div>
+
+        <!-- Small stats row -->
+        <div class="small-cards">
+          <div class="small-card" onclick="showPage('sleep')">
+            <div class="small-card-label">Sleep</div>
+            <div class="small-card-val" id="sleep-stat">—</div>
+            <div class="small-card-unit">hours last night</div>
+            <div class="small-card-bar"><div class="small-card-fill" id="sleep-bar" style="width:0%"></div></div>
+          </div>
+          <div class="small-card" onclick="showPage('mind')">
+            <div class="small-card-label">Mood</div>
+            <div class="small-card-val" id="mood-stat">—</div>
+            <div class="small-card-unit">today's vibe</div>
+            <div class="small-card-bar"><div class="small-card-fill" id="mood-bar" style="width:50%;background:var(--card-yellow)"></div></div>
+          </div>
+        </div>
+
+        <!-- Mood check-in -->
+        <div class="section-header">
+          <div class="section-title">How are you? 👋</div>
+        </div>
+        <div class="mood-row" id="home-mood-row">
+          <button class="mood-chip" onclick="setMood(this,'😩','Terrible',10)">😩<span>Terrible</span></button>
+          <button class="mood-chip" onclick="setMood(this,'😔','Low',30)">😔<span>Low</span></button>
+          <button class="mood-chip" onclick="setMood(this,'😐','Okay',50)">😐<span>Okay</span></button>
+          <button class="mood-chip" onclick="setMood(this,'😊','Good',75)">😊<span>Good</span></button>
+          <button class="mood-chip" onclick="setMood(this,'🤩','Amazing',100)">🤩<span>Amazing</span></button>
+        </div>
+
+        <!-- Today's meals -->
+        <div class="section-header">
+          <div class="section-title">Meal Plan 🍽️</div>
+          <button class="section-link" onclick="refreshMealPlan()">Refresh ↻</button>
+        </div>
+        <div class="meal-list" id="home-meal-list"></div>
+
+        <!-- Ingredients -->
+        <div class="section-header">
+          <div class="section-title">What's available?</div>
+        </div>
+        <div class="form-section">
+          <div class="form-card">
+            <div class="ing-grid" id="ing-grid">
+              <button class="ing-chip on" onclick="this.classList.toggle('on')">Rice</button>
+              <button class="ing-chip on" onclick="this.classList.toggle('on')">Dal</button>
+              <button class="ing-chip on" onclick="this.classList.toggle('on')">Roti / Atta</button>
+              <button class="ing-chip" onclick="this.classList.toggle('on')">Paneer</button>
+              <button class="ing-chip on" onclick="this.classList.toggle('on')">Eggs</button>
+              <button class="ing-chip on" onclick="this.classList.toggle('on')">Chicken</button>
+              <button class="ing-chip" onclick="this.classList.toggle('on')">Fish</button>
+              <button class="ing-chip on" onclick="this.classList.toggle('on')">Milk / Curd</button>
+              <button class="ing-chip on" onclick="this.classList.toggle('on')">Vegetables</button>
+              <button class="ing-chip" onclick="this.classList.toggle('on')">Peanut Butter</button>
+              <button class="ing-chip on" onclick="this.classList.toggle('on')">Ghee</button>
+              <button class="ing-chip" onclick="this.classList.toggle('on')">Dry Fruits</button>
+              <button class="ing-chip" onclick="this.classList.toggle('on')">Banana</button>
+              <button class="ing-chip" onclick="this.classList.toggle('on')">Potato</button>
+            </div>
+            <button class="btn-main btn-yellow" onclick="refreshMealPlan()">Update Meal Plan</button>
+          </div>
+        </div>
+
+        <!-- Quick sleep log -->
+        <div class="section-header"><div class="section-title">Quick Sleep Log</div></div>
+        <div class="form-section">
+          <div class="form-card">
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Hours slept</div>
+                <input class="form-input" type="number" id="qs-hours" min="0" max="12" step="0.5" placeholder="7.5">
+              </div>
+              <div class="form-group">
+                <div class="form-label">Quality</div>
+                <select class="form-input" id="qs-qual">
+                  <option>Excellent</option>
+                  <option selected>Good</option>
+                  <option>Fair</option>
+                  <option>Poor</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-main" onclick="logQuickSleep()">Log Sleep</button>
+          </div>
+        </div>
+
+      </div><!-- end scroll-area -->
+    </div><!-- end page-home -->
+
+    <!-- ═══ PAGE: MEALS ═══ -->
+    <div class="page" id="page-meals">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="top-icon" onclick="showPage('home')" style="font-size:20px">←</button>
+        </div>
+        <div class="avatar" id="user-avatar2">You</div>
+      </div>
+      <div class="page-title-wrap">
+        <div class="page-title">Meals</div>
+        <div class="page-subtitle" id="meals-sub">Target: 2800 kcal/day</div>
+      </div>
+      <div class="scroll-area">
+
+        <!-- Progress card orange -->
+        <div class="big-card card-orange">
+          <div class="card-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div class="card-label">Progress</div>
+          <div class="card-stats">
+            <div class="stat-line">
+              <div class="stat-big" id="m-cal">0</div>
+              <div class="stat-small">/ 2800 kcal</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:8px;position:relative;z-index:2">
+              <div>
+                <div style="font-size:18px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;color:white" id="m-carb">0g</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.7)">Carbs</div>
+              </div>
+              <div>
+                <div style="font-size:18px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;color:white" id="m-prot">0g</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.7)">Protein</div>
+              </div>
+              <div>
+                <div style="font-size:18px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;color:white" id="m-fat">0g</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.7)">Fat</div>
+              </div>
+            </div>
+          </div>
+          <div class="deco deco-stripes"></div>
+        </div>
+
+        <!-- Meal plan list -->
+        <div class="section-header">
+          <div class="section-title">Today's Plan</div>
+          <button class="section-link" onclick="refreshMealPlan()">Refresh ↻</button>
+        </div>
+        <div class="meal-list" id="meals-list"></div>
+
+        <!-- Log custom -->
+        <div class="section-header"><div class="section-title">Log Custom</div></div>
+        <div class="form-section">
+          <div class="form-card">
+            <div class="form-row">
+              <div class="form-group" style="grid-column:1/-1">
+                <div class="form-label">Meal name</div>
+                <input class="form-input" type="text" id="c-name" placeholder="e.g. Rajma Chawal">
+              </div>
+              <div class="form-group">
+                <div class="form-label">Calories</div>
+                <input class="form-input" type="number" id="c-cal" placeholder="500">
+              </div>
+              <div class="form-group">
+                <div class="form-label">Protein (g)</div>
+                <input class="form-input" type="number" id="c-prot" placeholder="25">
+              </div>
+            </div>
+            <button class="btn-main" onclick="logCustom()">Log Meal</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end page-meals -->
+
+    <!-- ═══ PAGE: CHAT ═══ -->
+    <div class="page" id="page-chat">
+      <div class="topbar" style="flex-shrink:0">
+        <div class="top-left">
+          <button class="top-icon" onclick="showPage('home')" style="font-size:20px">←</button>
+        </div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:700;color:var(--ink)">Skat3health AI</div>
+        <div class="avatar">S3</div>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-msgs" id="chat-area">
+          <div class="chat-msg">
+            <div class="chat-av">S3</div>
+            <div>
+              <div class="chat-bubble">
+                Namaste! 🙏 I'm your <strong>Skat3health</strong> AI — here to help you gain weight the healthy way with real Indian food.<br><br>
+                At 5'8" and 45kg, we're targeting <strong>2800–3000 kcal/day</strong>. Ask me anything!
+              </div>
+              <div class="quick-chips">
+                <button class="q-chip" onclick="sendChip('What should I eat for breakfast?')">Breakfast ideas 🍳</button>
+                <button class="q-chip" onclick="sendChip('I feel too full, what should I do?')">Too full 😮‍💨</button>
+                <button class="q-chip" onclick="sendChip('Give me a quick high-calorie snack idea')">Snack ideas</button>
+                <button class="q-chip" onclick="sendChip('How am I doing overall with my health goals?')">My progress</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-wrap">
+          <textarea class="chat-input" id="chat-input" placeholder="Ask about meals, fullness, sleep..." rows="1" onkeydown="chatKey(event)" oninput="autoGrow(this)"></textarea>
+          <button class="chat-send" onclick="sendMsg()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: SLEEP ═══ -->
+    <div class="page" id="page-sleep">
+      <div class="topbar">
+        <button class="top-icon" onclick="showPage('home')" style="font-size:20px">←</button>
+        <div class="avatar" id="user-av3">You</div>
+      </div>
+      <div class="page-title-wrap">
+        <div class="page-title">Sleep</div>
+        <div class="page-subtitle">Rest fuels muscle growth</div>
+      </div>
+      <div class="scroll-area">
+
+        <!-- Sleep card green -->
+        <div class="big-card card-green">
+          <div class="card-label">Last night</div>
+          <div class="card-stats">
+            <div class="stat-line">
+              <div class="stat-big" id="sl-hours-big">—</div>
+              <div class="stat-small">hours</div>
+            </div>
+            <div class="stat-line">
+              <div class="stat-big" style="font-size:22px" id="sl-qual-big">—</div>
+            </div>
+          </div>
+          <div class="round-badge" id="sl-badge" style="background:var(--ink);color:var(--bg)">💤</div>
+          <div class="deco deco-dots" style="opacity:0.15"></div>
+        </div>
+
+        <!-- Log sleep -->
+        <div class="section-header"><div class="section-title">Log Sleep</div></div>
+        <div class="form-section">
+          <div class="form-card">
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Bedtime</div>
+                <input class="form-input" type="time" id="sl-bed" value="22:30">
+              </div>
+              <div class="form-group">
+                <div class="form-label">Wake time</div>
+                <input class="form-input" type="time" id="sl-wake" value="06:30">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:10px">
+              <div class="form-label">Quality</div>
+              <select class="form-input" id="sl-qual">
+                <option>Excellent 🌟</option>
+                <option selected>Good 😌</option>
+                <option>Fair 😴</option>
+                <option>Poor 😫</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <div class="form-label">Notes</div>
+              <input class="form-input" type="text" id="sl-notes" placeholder="Woke up twice, vivid dreams...">
+            </div>
+            <button class="btn-main" onclick="logSleep()">Save Sleep Log</button>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="section-header"><div class="section-title">This week</div></div>
+        <div class="form-section">
+          <div class="form-card" id="sleep-hist"></div>
+        </div>
+
+        <!-- Tips card -->
+        <div class="big-card card-blue" style="min-height:auto;padding:20px">
+          <div class="card-label" style="margin-bottom:10px">Sleep Tips 💡</div>
+          <div style="display:flex;flex-direction:column;gap:8px;position:relative;z-index:2">
+            <div style="font-size:13px;color:var(--ink)">🕘 Aim for <strong>7–9 hours</strong> — growth hormone peaks in deep sleep</div>
+            <div style="font-size:13px;color:var(--ink)">🥛 Drink warm <strong>milk or eat paneer</strong> before bed for protein</div>
+            <div style="font-size:13px;color:var(--ink)">😴 Consistent bedtime regulates your <strong>appetite hormones</strong></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: MIND ═══ -->
+    <div class="page" id="page-mind">
+      <div class="topbar">
+        <button class="top-icon" onclick="showPage('home')" style="font-size:20px">←</button>
+        <div class="avatar">You</div>
+      </div>
+      <div class="page-title-wrap">
+        <div class="page-title">Mind</div>
+        <div class="page-subtitle">Your mental health matters</div>
+      </div>
+      <div class="scroll-area">
+
+        <!-- Purple card -->
+        <div class="big-card card-purple">
+          <div class="card-label">Daily check-in</div>
+          <div class="card-stats">
+            <div class="stat-line">
+              <div class="stat-big" id="mind-emoji-big">🧠</div>
+            </div>
+            <div class="stat-line">
+              <div class="stat-big" style="font-size:22px" id="mind-score-big">—</div>
+              <div class="stat-small">mood score today</div>
+            </div>
+          </div>
+          <div class="deco deco-blob"></div>
+        </div>
+
+        <!-- Mood select -->
+        <div class="section-header"><div class="section-title">How do you feel?</div></div>
+        <div class="mood-row" id="mind-mood-row">
+          <button class="mood-chip" onclick="setMindMood(this,'😩',1)">😩<span>Terrible</span></button>
+          <button class="mood-chip" onclick="setMindMood(this,'😔',3)">😔<span>Low</span></button>
+          <button class="mood-chip selected" onclick="setMindMood(this,'😐',5)">😐<span>Neutral</span></button>
+          <button class="mood-chip" onclick="setMindMood(this,'😊',7)">😊<span>Good</span></button>
+          <button class="mood-chip" onclick="setMindMood(this,'🤩',10)">🤩<span>Amazing</span></button>
+        </div>
+
+        <!-- Sliders -->
+        <div class="form-section">
+          <div class="form-card">
+            <div class="form-card-title">Energy & Stress</div>
+            <div class="form-group" style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <div class="form-label">Stress</div>
+                <span id="stress-out" style="font-size:12px;color:var(--ink3)">4</span>
+              </div>
+              <input type="range" min="1" max="10" value="4" id="stress-sl" oninput="document.getElementById('stress-out').textContent=this.value">
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <div class="form-label">Energy</div>
+                <span id="energy-out" style="font-size:12px;color:var(--ink3)">6</span>
+              </div>
+              <input type="range" min="1" max="10" value="6" id="energy-sl" oninput="document.getElementById('energy-out').textContent=this.value">
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <div class="form-label">What's on your mind?</div>
+              <input class="form-input" type="text" id="mind-note" placeholder="Share anything...">
+            </div>
+            <button class="btn-main" onclick="logMind()">Save Check-in</button>
+          </div>
+        </div>
+
+        <!-- Insight card -->
+        <div class="big-card card-yellow" style="min-height:auto;padding:20px">
+          <div class="card-label" style="margin-bottom:8px">Mind & Weight 🔗</div>
+          <div style="font-size:13px;color:var(--ink);line-height:1.6;position:relative;z-index:2">
+            High stress raises <strong>cortisol</strong> — which breaks down muscle and kills appetite. A calm mind means better digestion, better hunger, better gains. Talk to me in the AI Chat anytime 💬
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: SETTINGS ═══ -->
+    <div class="page" id="page-settings">
+      <div class="topbar">
+        <button class="top-icon" onclick="showPage('home')" style="font-size:20px">←</button>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:700">Setup</div>
+        <div style="width:42px"></div>
+      </div>
+      <div class="page-title-wrap">
+        <div class="page-title">Setup</div>
+        <div class="page-subtitle">Connect APIs & set your profile</div>
+      </div>
+      <div class="scroll-area">
+
+        <div class="settings-list">
+          <!-- API keys -->
+          <div class="api-card">
+            <div class="api-card-title">⚡ Gemini AI Key</div>
+            <div class="api-card-sub">Get free at aistudio.google.com/app/apikey</div>
+            <input class="form-input" type="password" id="gemini-key" placeholder="AIza..." style="width:100%;background:rgba(255,255,255,0.6);margin-bottom:10px">
+            <div class="api-card-title" style="margin-top:8px">📊 Google Sheets URL</div>
+            <div class="api-card-sub">Apps Script web app URL for data storage</div>
+            <input class="form-input" type="text" id="sheet-url" placeholder="https://script.google.com/..." style="width:100%;background:rgba(255,255,255,0.6);margin-bottom:10px">
+            <button class="btn-main" style="background:var(--ink)" onclick="saveKeys()">Save Keys</button>
+          </div>
+
+          <!-- Profile -->
+          <div class="settings-card">
+            <div style="padding:16px 18px 0;font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:700;color:var(--ink)">Your Profile</div>
+            <div class="settings-row">
+              <div class="settings-row-label">Name</div>
+              <input class="settings-input" type="text" id="p-name" placeholder="Your name">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-label">Weight (kg)</div>
+              <input class="settings-input" type="number" id="p-weight" value="45">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-label">Height (cm)</div>
+              <input class="settings-input" type="number" id="p-height" value="173">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-label">Target weight (kg)</div>
+              <input class="settings-input" type="number" id="p-target" value="65">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-label">Calorie target</div>
+              <input class="settings-input" type="number" id="p-cal" value="2800">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-label">Diet</div>
+              <select class="settings-input" id="p-diet" style="width:auto">
+                <option>Vegetarian</option>
+                <option selected>Non-veg</option>
+                <option>Eggetarian</option>
+                <option>Vegan</option>
+              </select>
+            </div>
+            <div class="settings-row" style="border-bottom:none">
+              <div class="settings-row-label">Avoid foods</div>
+              <input class="settings-input" type="text" id="p-avoid" placeholder="e.g. spicy">
+            </div>
+          </div>
+          <button class="btn-main" onclick="saveProfile()">Save Profile</button>
+
+          <!-- Meal times -->
+          <div class="settings-card">
+            <div style="padding:16px 18px 0;font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:700;color:var(--ink)">Meal Times</div>
+            <div class="settings-row"><div class="settings-row-label">Breakfast</div><input class="settings-input" type="time" id="t-breakfast" value="08:00"></div>
+            <div class="settings-row"><div class="settings-row-label">Morning snack</div><input class="settings-input" type="time" id="t-snack1" value="10:30"></div>
+            <div class="settings-row"><div class="settings-row-label">Lunch</div><input class="settings-input" type="time" id="t-lunch" value="13:00"></div>
+            <div class="settings-row"><div class="settings-row-label">Evening snack</div><input class="settings-input" type="time" id="t-snack2" value="16:30"></div>
+            <div class="settings-row" style="border-bottom:none"><div class="settings-row-label">Dinner</div><input class="settings-input" type="time" id="t-dinner" value="20:00"></div>
+          </div>
+          <button class="btn-main" onclick="saveTimes()">Save Times</button>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end pages -->
+
+  <!-- BOTTOM TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-home" onclick="showPage('home')">
+      <div class="tab-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="tab-label">Home</div>
+    </button>
+    <button class="tab-btn" id="tab-meals" onclick="showPage('meals')">
+      <div class="tab-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      </div>
+      <div class="tab-label">Meals</div>
+    </button>
+    <button class="tab-btn" id="tab-chat" onclick="showPage('chat')">
+      <div class="tab-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="tab-label">AI Chat</div>
+    </button>
+    <button class="tab-btn" id="tab-sleep" onclick="showPage('sleep')">
+      <div class="tab-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </div>
+      <div class="tab-label">Sleep</div>
+    </button>
+    <button class="tab-btn" id="tab-mind" onclick="showPage('mind')">
+      <div class="tab-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <div class="tab-label">Mind</div>
+    </button>
+  </div>
+
+  <!-- FEEDBACK BOTTOM SHEET -->
+  <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet(event)">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="sheet-meal-name">Meal Feedback</div>
+      <div class="sheet-sub">How did that feel?</div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:6px">How full are you? <span id="full-val">7</span>/10</div>
+      <input type="range" min="1" max="10" value="7" id="full-sl" oninput="document.getElementById('full-val').textContent=this.value" style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:8px">How do you feel?</div>
+      <div class="sheet-mood-row" id="sheet-mood-row">
+        <button class="sheet-mood-btn" onclick="pickSheetMood(this,'😖')">😖</button>
+        <button class="sheet-mood-btn" onclick="pickSheetMood(this,'😐')">😐</button>
+        <button class="sheet-mood-btn selected" onclick="pickSheetMood(this,'🙂')">🙂</button>
+        <button class="sheet-mood-btn" onclick="pickSheetMood(this,'😊')">😊</button>
+        <button class="sheet-mood-btn" onclick="pickSheetMood(this,'🤩')">🤩</button>
+      </div>
+      <input class="form-input" type="text" id="sheet-note" placeholder="Any notes? (optional)" style="margin-bottom:14px;width:100%">
+      <div class="sheet-btns">
+        <button class="btn-sec" onclick="closeSheet()">Skip</button>
+        <button class="btn-pri" onclick="saveSheet()">Save Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+</div><!-- end .phone -->
+
+<script>
+// ── CONFIG ──
+const CFG = {
+  gemini: localStorage.getItem('gemini_key')||'',
+  sheet:  localStorage.getItem('sheet_url')||'',
+  calTarget: parseInt(localStorage.getItem('p-cal')||'2800'),
+  protTarget: 140,
+};
+const PROFILE = JSON.parse(localStorage.getItem('profile')||'{"name":"","weight":45,"height":173,"target":65,"diet":"Non-veg","avoid":""}');
+
+const STATE = {
+  cal:0, prot:0, carb:0, fat:0, meals:0,
+  homeMood:'', mindMood:'😐', mindScore:5,
+  sleepH: parseFloat(localStorage.getItem('last_sleep')||'0'),
+  mealPlan:[],
+  chatHistory:[],
+  sleepLog: JSON.parse(localStorage.getItem('sleep_log')||'[]'),
+  sheetMeal: null, sheetMood:'🙂',
+};
+
+// ── MEAL DATA ──
+const MEALS = {
+  breakfast:[
+    {n:'Aloo Paratha + Ghee + Curd',cal:520,prot:14,carb:72,fat:18,emoji:'🫓',ing:['Roti / Atta','Ghee']},
+    {n:'Masala Omelette + Toast',cal:380,prot:22,carb:30,fat:18,emoji:'🍳',ing:['Eggs']},
+    {n:'Poha with Peanuts',cal:340,prot:10,carb:58,fat:8,emoji:'🍚',ing:[]},
+    {n:'Idli Sambar (4 pcs)',cal:320,prot:12,carb:60,fat:4,emoji:'🍥',ing:['Rice','Dal']},
+    {n:'Egg Bhurji + 2 Rotis',cal:450,prot:24,carb:42,fat:18,emoji:'🍳',ing:['Eggs','Roti / Atta']},
+    {n:'Besan Cheela + Paneer',cal:420,prot:22,carb:40,fat:16,emoji:'🫓',ing:['Paneer']},
+  ],
+  snack:[
+    {n:'Banana + PB Shake',cal:480,prot:14,carb:68,fat:16,emoji:'🥤',ing:['Banana','Peanut Butter','Milk / Curd']},
+    {n:'Roasted Chana + Jaggery',cal:280,prot:14,carb:44,fat:5,emoji:'🫘',ing:[]},
+    {n:'Paneer Tikka (100g)',cal:260,prot:18,carb:6,fat:18,emoji:'🧀',ing:['Paneer']},
+    {n:'Mixed Dry Fruits (50g)',cal:320,prot:8,carb:32,fat:20,emoji:'🥜',ing:['Dry Fruits']},
+    {n:'Boiled Eggs (2)',cal:160,prot:12,carb:2,fat:10,emoji:'🥚',ing:['Eggs']},
+  ],
+  lunch:[
+    {n:'Dal Tadka + Rice + Sabzi',cal:650,prot:22,carb:108,fat:14,emoji:'🍛',ing:['Dal','Rice','Vegetables']},
+    {n:'Chicken Curry + 3 Rotis',cal:720,prot:42,carb:70,fat:22,emoji:'🍗',ing:['Chicken','Roti / Atta']},
+    {n:'Rajma Chawal',cal:680,prot:26,carb:116,fat:10,emoji:'🍲',ing:['Rice']},
+    {n:'Paneer Butter Masala + Naan',cal:760,prot:28,carb:80,fat:32,emoji:'🧆',ing:['Paneer']},
+    {n:'Fish Curry + Rice',cal:580,prot:38,carb:72,fat:14,emoji:'🐟',ing:['Fish','Rice']},
+  ],
+  dinner:[
+    {n:'Chicken Biryani (2 cups)',cal:680,prot:38,carb:88,fat:18,emoji:'🍚',ing:['Chicken','Rice']},
+    {n:'Dal Makhani + Roti (2)',cal:580,prot:20,carb:86,fat:16,emoji:'🫕',ing:['Dal','Roti / Atta']},
+    {n:'Paneer + Dal + Roti',cal:600,prot:30,carb:76,fat:20,emoji:'🧆',ing:['Paneer','Dal']},
+    {n:'Egg Curry + Rice',cal:560,prot:28,carb:74,fat:18,emoji:'🍳',ing:['Eggs','Rice']},
+    {n:'Sabzi + Dal + Roti',cal:480,prot:16,carb:80,fat:10,emoji:'🥘',ing:['Dal','Roti / Atta','Vegetables']},
+  ]
+};
+const COLORS = ['#E8F000','#F07840','#78C878','#78B4F0','#C8A0F0'];
+
+// ── NAVIGATION ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.getElementById('tab-'+id)?.classList.add('active');
+  if(id==='sleep') renderSleepHistory();
+}
+
+// ── MEAL PLAN ──
+function getAvail() {
+  return Array.from(document.querySelectorAll('#ing-grid .ing-chip.on')).map(c=>c.textContent.trim());
+}
+function scoreMeal(m, avail) {
+  if(!m.ing.length) return 1;
+  return m.ing.filter(i=>avail.includes(i)).length/m.ing.length;
+}
+function pickMeal(cat, avail) {
+  const pool = MEALS[cat]||[];
+  const diet = PROFILE.diet||'';
+  const avoid = (PROFILE.avoid||'').toLowerCase();
+  const filtered = pool.filter(m=>{
+    if(diet==='Vegetarian'&&/chicken|mutton|fish|egg/i.test(m.n)) return false;
+    if(diet==='Vegan'&&/paneer|egg|milk|curd|ghee/i.test(m.n)) return false;
+    if(avoid&&avoid.split(',').some(a=>m.n.toLowerCase().includes(a.trim()))) return false;
+    return true;
+  });
+  if(!filtered.length) return pool[0];
+  return [...filtered].sort((a,b)=>scoreMeal(b,avail)-scoreMeal(a,avail))[Math.floor(Math.random()*Math.min(3,filtered.length))];
+}
+function generatePlan() {
+  const avail = getAvail();
+  const times = {
+    breakfast: localStorage.getItem('t-breakfast')||'08:00',
+    snack1:    localStorage.getItem('t-snack1')||'10:30',
+    lunch:     localStorage.getItem('t-lunch')||'13:00',
+    snack2:    localStorage.getItem('t-snack2')||'16:30',
+    dinner:    localStorage.getItem('t-dinner')||'20:00',
+  };
+  return [
+    {time:times.breakfast, type:'Breakfast', ...pickMeal('breakfast',avail)},
+    {time:times.snack1,    type:'Snack',     ...pickMeal('snack',avail)},
+    {time:times.lunch,     type:'Lunch',     ...pickMeal('lunch',avail)},
+    {time:times.snack2,    type:'Snack',     ...pickMeal('snack',avail)},
+    {time:times.dinner,    type:'Dinner',    ...pickMeal('dinner',avail)},
+  ];
+}
+function refreshMealPlan() {
+  STATE.mealPlan = generatePlan();
+  renderMeals();
+  toast('Meal plan refreshed! 🍽️');
+}
+function renderMeals() {
+  const lists = ['home-meal-list','meals-list'];
+  lists.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = STATE.mealPlan.map((m,i)=>`
+      <div class="meal-item ${m.logged?'':''}">
+        <div class="meal-dot" style="background:${COLORS[i%COLORS.length]}26">${m.emoji||'🍽️'}</div>
+        <div class="meal-info">
+          <div class="meal-name-text">${m.n}</div>
+          <div class="meal-meta">${m.time} · ${m.type} · ${m.prot}g protein</div>
+        </div>
+        <div class="meal-cal-badge">${m.cal}</div>
+        <button class="meal-log-btn ${m.logged?'done':''}" onclick="logMeal(${i})">${m.logged?'✓':'+'}</button>
+      </div>
+    `).join('');
+  });
+}
+function logMeal(i) {
+  const m = STATE.mealPlan[i];
+  if(m.logged){ openSheet(m); return; }
+  m.logged=true;
+  STATE.cal+=m.cal; STATE.prot+=m.prot; STATE.carb+=m.carb||0; STATE.fat+=m.fat||0; STATE.meals++;
+  updateStats(); renderMeals();
+  toast(`${m.n} logged! +${m.cal} kcal`);
+  logToSheet('meal',m);
+  setTimeout(()=>openSheet(m),600);
+}
+function logCustom() {
+  const n=document.getElementById('c-name').value.trim();
+  const cal=parseInt(document.getElementById('c-cal').value)||0;
+  const prot=parseInt(document.getElementById('c-prot').value)||0;
+  if(!n||!cal){toast('Enter name and calories');return;}
+  STATE.cal+=cal; STATE.prot+=prot; STATE.meals++;
+  updateStats(); logToSheet('meal',{n,cal,prot});
+  toast(`${n} logged! +${cal} kcal`);
+  document.getElementById('c-name').value='';
+  document.getElementById('c-cal').value='';
+  document.getElementById('c-prot').value='';
+}
+
+// ── STATS ──
+function updateStats() {
+  const t=CFG.calTarget;
+  const pct=Math.min(100,Math.round(STATE.cal/t*100));
+  document.getElementById('cal-big').textContent=STATE.cal;
+  document.getElementById('prot-big').textContent=STATE.prot+'g';
+  document.getElementById('meals-big').textContent=STATE.meals;
+  document.getElementById('m-cal').textContent=STATE.cal;
+  document.getElementById('m-carb').textContent=STATE.carb+'g';
+  document.getElementById('m-prot').textContent=STATE.prot+'g';
+  document.getElementById('m-fat').textContent=STATE.fat+'g';
+}
+
+// ── MOOD ──
+function setMood(el,emoji,label,score) {
+  document.querySelectorAll('#home-mood-row .mood-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.homeMood=emoji;
+  document.getElementById('mood-stat').textContent=emoji;
+  document.getElementById('mood-bar').style.width=score+'%';
+  logToSheet('mood',{emoji,label});
+  toast(`Mood logged: ${emoji}`);
+}
+function setMindMood(el,emoji,score) {
+  document.querySelectorAll('#mind-mood-row .mood-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.mindMood=emoji; STATE.mindScore=score;
+  document.getElementById('mind-emoji-big').textContent=emoji;
+  document.getElementById('mind-score-big').textContent=score+'/10';
+}
+function logMind() {
+  const stress=document.getElementById('stress-sl').value;
+  const energy=document.getElementById('energy-sl').value;
+  const notes=document.getElementById('mind-note').value;
+  logToSheet('mental',{mood:STATE.mindMood,score:STATE.mindScore,stress,energy,notes,date:todayStr()});
+  toast('Check-in saved! 🧠');
+  document.getElementById('mind-note').value='';
+}
+
+// ── SLEEP ──
+function logQuickSleep() {
+  const h=parseFloat(document.getElementById('qs-hours').value);
+  const q=document.getElementById('qs-qual').value;
+  if(!h){toast('Enter hours slept');return;}
+  STATE.sleepH=h;
+  document.getElementById('sleep-stat').textContent=h;
+  document.getElementById('sleep-bar').style.width=Math.min(100,Math.round(h/9*100))+'%';
+  localStorage.setItem('last_sleep',h);
+  const entry={date:todayStr(),hours:h,quality:q,notes:''};
+  STATE.sleepLog.unshift(entry);
+  if(STATE.sleepLog.length>14)STATE.sleepLog.pop();
+  localStorage.setItem('sleep_log',JSON.stringify(STATE.sleepLog));
+  logToSheet('sleep',entry);
+  toast(`Sleep logged: ${h} hours 😴`);
+}
+function logSleep() {
+  const bed=document.getElementById('sl-bed').value;
+  const wake=document.getElementById('sl-wake').value;
+  const q=document.getElementById('sl-qual').value;
+  const notes=document.getElementById('sl-notes').value;
+  const [bh,bm]=bed.split(':').map(Number);
+  const [wh,wm]=wake.split(':').map(Number);
+  let h=Math.round(((wh*60+wm-bh*60-bm+1440)%1440)/60*10)/10;
+  STATE.sleepH=h;
+  document.getElementById('sl-hours-big').textContent=h;
+  document.getElementById('sl-qual-big').textContent=q;
+  document.getElementById('sl-badge').textContent=h>=7?'🌟':h>=5?'😌':'😫';
+  document.getElementById('sleep-stat').textContent=h;
+  document.getElementById('sleep-bar').style.width=Math.min(100,Math.round(h/9*100))+'%';
+  localStorage.setItem('last_sleep',h);
+  const entry={date:todayStr(),bed,wake,hours:h,quality:q,notes};
+  STATE.sleepLog.unshift(entry);
+  if(STATE.sleepLog.length>14)STATE.sleepLog.pop();
+  localStorage.setItem('sleep_log',JSON.stringify(STATE.sleepLog));
+  renderSleepHistory();
+  logToSheet('sleep',entry);
+  toast(`Sleep logged: ${h} hrs 💤`);
+}
+function renderSleepHistory() {
+  const el=document.getElementById('sleep-hist');
+  if(!el)return;
+  if(!STATE.sleepLog.length){el.innerHTML='<div style="font-size:13px;color:var(--ink3);text-align:center;padding:16px">No sleep data yet</div>';return;}
+  el.innerHTML=STATE.sleepLog.slice(0,7).map(s=>`
+    <div class="sleep-row">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--ink)">${s.date}</div>
+        <div style="font-size:12px;color:var(--ink3)">${s.quality}</div>
+      </div>
+      <div class="sleep-hours" style="color:${s.hours>=7?'#3B8A3B':s.hours>=5?'#B07800':'#B03030'}">${s.hours}h</div>
+    </div>
+  `).join('');
+}
+
+// ── FEEDBACK SHEET ──
+function openSheet(m) {
+  STATE.sheetMeal=m;
+  document.getElementById('sheet-meal-name').textContent=m.n;
+  document.getElementById('sheet-overlay').classList.add('open');
+}
+function closeSheet(e) {
+  if(!e||e.target===document.getElementById('sheet-overlay'))
+    document.getElementById('sheet-overlay').classList.remove('open');
+}
+function pickSheetMood(el,mood) {
+  document.querySelectorAll('#sheet-mood-row .sheet-mood-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.sheetMood=mood;
+}
+function saveSheet() {
+  const fullness=document.getElementById('full-sl').value;
+  const note=document.getElementById('sheet-note').value;
+  logToSheet('feedback',{meal:STATE.sheetMeal?.n,fullness,mood:STATE.sheetMood,note,date:todayStr()});
+  document.getElementById('sheet-overlay').classList.remove('open');
+  document.getElementById('sheet-note').value='';
+  toast('Feedback saved! 📝');
+}
+
+// ── GEMINI CHAT ──
+function buildSys() {
+  const avail=getAvail().join(', ');
+  return `You are Skat3health, a warm personal health AI companion for ${PROFILE.name||'your user'}.
+User: ${PROFILE.height}cm tall, currently ${PROFILE.weight}kg, target ${PROFILE.target}kg. Needs to GAIN weight.
+Daily calorie target: ${CFG.calTarget} kcal. Protein target: ${CFG.protTarget}g. Today consumed: ${STATE.cal} kcal.
+Diet: ${PROFILE.diet}. Avoid: ${PROFILE.avoid||'nothing'}.
+Available ingredients today: ${avail}.
+You suggest authentic Indian meals, track fullness, support mental wellbeing and sleep. Be warm, concise, practical.
+Always include calorie estimates. If user feels full, suggest lighter next meals. Be encouraging — this is a weight gain journey.`;
+}
+async function callGemini(msg) {
+  if(!CFG.gemini) return "Please add your Gemini API key in Setup (⚙️) first — it's free at aistudio.google.com!";
+  const hist=STATE.chatHistory.slice(-6).map(m=>`${m.r==='user'?'User':'Skat3health'}: ${m.t}`).join('\n');
+  const prompt=buildSys()+'\n\nConversation:\n'+hist+'\n\nUser: '+msg;
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CFG.gemini}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.8,maxOutputTokens:500}})
+    });
+    const d=await res.json();
+    if(d.error)return`Error: ${d.error.message}`;
+    return d.candidates?.[0]?.content?.parts?.[0]?.text||'Sorry, no response.';
+  }catch(e){return'Connection failed. Check your API key.';}
+}
+function addMsg(role,text) {
+  const area=document.getElementById('chat-area');
+  const time=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const d=document.createElement('div');
+  d.className='chat-msg '+role;
+  const isUser=role==='user';
+  d.innerHTML=`
+    <div class="chat-av ${isUser?'user':''}">${isUser?'You':'S3'}</div>
+    <div>
+      <div class="chat-bubble">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>
+      <div class="chat-time">${time}</div>
+    </div>`;
+  area.appendChild(d);
+  area.scrollTop=area.scrollHeight;
+}
+function addTyping() {
+  const area=document.getElementById('chat-area');
+  const d=document.createElement('div');
+  d.className='chat-msg'; d.id='typing';
+  d.innerHTML=`<div class="chat-av">S3</div><div><div class="chat-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div></div>`;
+  area.appendChild(d);
+  area.scrollTop=area.scrollHeight;
+}
+async function sendMsg() {
+  const inp=document.getElementById('chat-input');
+  const text=inp.value.trim();
+  if(!text)return;
+  inp.value=''; inp.style.height='';
+  addMsg('user',text);
+  STATE.chatHistory.push({r:'user',t:text});
+  addTyping();
+  const reply=await callGemini(text);
+  document.getElementById('typing')?.remove();
+  addMsg('',reply);
+  STATE.chatHistory.push({r:'ai',t:reply});
+  logToSheet('chat',{user:text,ai:reply,date:todayStr()});
+}
+function sendChip(t){document.getElementById('chat-input').value=t;sendMsg();}
+function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function autoGrow(el){el.style.height='';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+// ── SHEETS ──
+async function logToSheet(type,data) {
+  const url=localStorage.getItem('sheet_url');
+  if(!url)return;
+  try{await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,data,timestamp:new Date().toISOString()})});}catch(e){}
+}
+
+// ── SETTINGS ──
+function saveKeys() {
+  const k=document.getElementById('gemini-key').value.trim();
+  const s=document.getElementById('sheet-url').value.trim();
+  if(k){localStorage.setItem('gemini_key',k);CFG.gemini=k;}
+  if(s){localStorage.setItem('sheet_url',s);CFG.sheet=s;}
+  toast('Keys saved! ✅');
+}
+function saveProfile() {
+  const p={
+    name:document.getElementById('p-name').value,
+    weight:parseFloat(document.getElementById('p-weight').value)||45,
+    height:parseFloat(document.getElementById('p-height').value)||173,
+    target:parseFloat(document.getElementById('p-target').value)||65,
+    diet:document.getElementById('p-diet').value,
+    avoid:document.getElementById('p-avoid').value,
+  };
+  Object.assign(PROFILE,p);
+  localStorage.setItem('profile',JSON.stringify(PROFILE));
+  CFG.calTarget=parseInt(document.getElementById('p-cal').value)||2800;
+  localStorage.setItem('p-cal',CFG.calTarget);
+  if(p.name){document.getElementById('user-avatar').textContent=p.name.slice(0,2).toUpperCase();document.getElementById('user-avatar2').textContent=p.name.slice(0,2).toUpperCase();}
+  toast('Profile saved! 👤');
+}
+function saveTimes() {
+  ['breakfast','snack1','lunch','snack2','dinner'].forEach(id=>{
+    const v=document.getElementById('t-'+id)?.value;
+    if(v)localStorage.setItem('t-'+id,v);
+  });
+  refreshMealPlan();
+  toast('Times saved & plan refreshed!');
+}
+function loadSettings() {
+  const k=localStorage.getItem('gemini_key');
+  const s=localStorage.getItem('sheet_url');
+  if(k)document.getElementById('gemini-key').value=k;
+  if(s)document.getElementById('sheet-url').value=s;
+  document.getElementById('p-name').value=PROFILE.name||'';
+  document.getElementById('p-weight').value=PROFILE.weight||45;
+  document.getElementById('p-height').value=PROFILE.height||173;
+  document.getElementById('p-target').value=PROFILE.target||65;
+  document.getElementById('p-diet').value=PROFILE.diet||'Non-veg';
+  document.getElementById('p-avoid').value=PROFILE.avoid||'';
+  document.getElementById('p-cal').value=CFG.calTarget;
+  if(PROFILE.name){
+    const ab=PROFILE.name.slice(0,2).toUpperCase();
+    document.getElementById('user-avatar').textContent=ab;
+    document.getElementById('user-avatar2').textContent=ab;
+  }
+  ['breakfast','snack1','lunch','snack2','dinner'].forEach(id=>{
+    const v=localStorage.getItem('t-'+id);
+    if(v&&document.getElementById('t-'+id))document.getElementById('t-'+id).value=v;
+  });
+}
+
+// ── UTILS ──
+function todayStr(){return new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── GREETING ──
+function setGreeting() {
+  const h=new Date().getHours();
+  const g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const n=PROFILE.name?`, ${PROFILE.name}`:'';
+  document.getElementById('home-title').textContent=g+n;
+  const emojis={0:'🌙',5:'🌅',12:'☀️',17:'🌆',20:'🌙'};
+  const e=Object.entries(emojis).reverse().find(([k])=>h>=k)?.[1]||'✨';
+  document.getElementById('home-sub').textContent=`${e} Let's fuel your body right today`;
+}
+
+// ── INIT ──
+function init() {
+  loadSettings();
+  setGreeting();
+  STATE.mealPlan=generatePlan();
+  renderMeals();
+  renderSleepHistory();
+  if(STATE.sleepH){
+    document.getElementById('sleep-stat').textContent=STATE.sleepH;
+    document.getElementById('sleep-bar').style.width=Math.min(100,Math.round(STATE.sleepH/9*100))+'%';
+  }
+}
+init();
+</script>
+</body>
+</html>
