@@ -1485,27 +1485,55 @@ function generatePlan() {
     {time:times.dinner,    type:'Dinner',    ...pickMeal('dinner',avail)},
   ];
 }
+
+// Returns index of the meal that's "up next" based on current time
+function getNextMealIndex() {
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  for (let i = 0; i < STATE.mealPlan.length; i++) {
+    const m = STATE.mealPlan[i];
+    if (m.logged) continue;
+    const [h, min] = m.time.split(':').map(Number);
+    const mealMins = h * 60 + min;
+    // Highlight if we're within 90 mins before or any time after the meal time
+    if (nowMins >= mealMins - 90) return i;
+  }
+  // All logged or all future — return first unlogged
+  return STATE.mealPlan.findIndex(m => !m.logged);
+}
+
 function refreshMealPlan() {
   STATE.mealPlan = generatePlan();
   renderMeals();
   toast('Meal plan refreshed! 🍽️');
 }
 function renderMeals() {
+  const nextIdx = getNextMealIndex();
   const lists = ['home-meal-list','meals-list'];
   lists.forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
-    el.innerHTML = STATE.mealPlan.map((m,i)=>`
-      <div class="meal-item ${m.logged?'':''}">
+    el.innerHTML = STATE.mealPlan.map((m,i)=>{
+      const isNext = i === nextIdx && !m.logged;
+      const isPast = (() => {
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        const [h, min] = m.time.split(':').map(Number);
+        return nowMins > h * 60 + min + 60 && !m.logged;
+      })();
+      return `
+      <div class="meal-item" style="${isNext ? 'border:2px solid var(--card-yellow);' : ''}${isPast ? 'opacity:0.55;' : ''}">
         <div class="meal-dot" style="background:${COLORS[i%COLORS.length]}26">${m.emoji||'🍽️'}</div>
         <div class="meal-info">
           <div class="meal-name-text">${m.n}</div>
-          <div class="meal-meta">${m.time} · ${m.type} · ${m.prot}g protein</div>
+          <div class="meal-meta">
+            ${isNext ? '<span style="color:var(--ink);font-weight:600">Now · </span>' : ''}${m.time} · ${m.type} · ${m.prot}g protein
+          </div>
         </div>
         <div class="meal-cal-badge">${m.cal}</div>
         <button class="meal-log-btn ${m.logged?'done':''}" onclick="logMeal(${i})">${m.logged?'✓':'+'}</button>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   });
 }
 function logMeal(i) {
@@ -1664,7 +1692,7 @@ async function callGemini(msg) {
   const hist=STATE.chatHistory.slice(-6).map(m=>`${m.r==='user'?'User':'Skat3health'}: ${m.t}`).join('\n');
   const prompt=buildSys()+'\n\nConversation:\n'+hist+'\n\nUser: '+msg;
   try{
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CFG.gemini}`,{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${CFG.gemini}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.8,maxOutputTokens:500}})
     });
@@ -1715,10 +1743,15 @@ function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg(
 function autoGrow(el){el.style.height='';el.style.height=Math.min(el.scrollHeight,100)+'px';}
 
 // ── SHEETS ──
-async function logToSheet(type,data) {
-  const url=localStorage.getItem('sheet_url');
-  if(!url)return;
-  try{await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,data,timestamp:new Date().toISOString()})});}catch(e){}
+// Apps Script requires GET requests with URL params (no-cors POST silently drops body)
+async function logToSheet(type, data) {
+  const url = localStorage.getItem('sheet_url');
+  if (!url) return;
+  try {
+    // Encode everything as a query param — Apps Script can read this without CORS issues
+    const payload = encodeURIComponent(JSON.stringify({ type, data, timestamp: new Date().toISOString() }));
+    await fetch(`${url}?payload=${payload}`, { method: 'GET', mode: 'no-cors' });
+  } catch(e) { console.warn('Sheet log failed:', e); }
 }
 
 // ── SETTINGS ──
@@ -1806,6 +1839,29 @@ function init() {
     document.getElementById('sleep-stat').textContent=STATE.sleepH;
     document.getElementById('sleep-bar').style.width=Math.min(100,Math.round(STATE.sleepH/9*100))+'%';
   }
+  // Auto-refresh meal highlighting every minute (so "Now" label stays accurate)
+  setInterval(renderMeals, 60000);
+  // Proactive meal nudge in chat based on current time
+  injectMealNudge();
+}
+
+function injectMealNudge() {
+  const nextIdx = getNextMealIndex();
+  if (nextIdx === -1) return;
+  const meal = STATE.mealPlan[nextIdx];
+  if (!meal) return;
+  const h = new Date().getHours();
+  const mealH = parseInt(meal.time.split(':')[0]);
+  const diff = mealH - h;
+  let nudge = '';
+  if (diff <= 0) nudge = `It's around <strong>${meal.type}</strong> time! Today I'd suggest: <strong>${meal.n}</strong> (~${meal.cal} kcal, ${meal.prot}g protein). Want me to swap it for something else based on what you have?`;
+  else if (diff <= 1) nudge = `<strong>${meal.type}</strong> is coming up in about an hour — planning to have <strong>${meal.n}</strong> (~${meal.cal} kcal). Let me know if you want alternatives!`;
+  else return; // Too far away — don't nudge
+  const area = document.getElementById('chat-area');
+  const d = document.createElement('div');
+  d.className = 'chat-msg';
+  d.innerHTML = `<div class="chat-av">S3</div><div><div class="chat-bubble">⏰ ${nudge}</div></div>`;
+  area.appendChild(d);
 }
 init();
 </script>
